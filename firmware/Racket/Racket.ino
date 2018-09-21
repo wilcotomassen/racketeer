@@ -1,7 +1,14 @@
 #include <ESP8266WiFi.h>
+#include <WiFiUdp.h>       
 
-const char* ssid = "some-ssid";
-const char* password = "some-password";
+// Networking settings
+const char* ssid = "*****";
+const char* password = "****";
+const unsigned int localPort = 8888;
+
+char packetBuffer[UDP_TX_PACKET_MAX_SIZE]; //buffer to hold incoming packet,
+
+WiFiUDP udp;
 
 void setup() {
   
@@ -25,16 +32,29 @@ void setup() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+
+  // Start listening for UDP packets
+  udp.begin(localPort);
  
 }
 
 // the loop function runs over and over again forever
 void loop() {
-  Serial.println("HELLO");
-  digitalWrite(LED_BUILTIN, LOW);   // Turn the LED on (Note that LOW is the voltage level
-  // but actually the LED is on; this is because
-  // it is active low on the ESP-01)
-  delay(500);                      // Wait for a second
-  digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
-  delay(1000);                      // Wait for two seconds (to demonstrate the active low LED)
+
+  int packetSize = udp.parsePacket();
+  if (packetSize) {
+
+    Serial.println("PACKET!");
+
+     // Read the packet into packetBufffer
+    udp.read(packetBuffer, UDP_TX_PACKET_MAX_SIZE);
+    Serial.println("Contents:");
+    Serial.println(packetBuffer);
+
+    // Blink led
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(100);
+    digitalWrite(LED_BUILTIN, HIGH);  
+  }
+  
 }
