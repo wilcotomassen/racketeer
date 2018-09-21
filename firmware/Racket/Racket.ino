@@ -1,7 +1,31 @@
+#include <ESP8266WiFi.h>
+
+const char* ssid = "some-ssid";
+const char* password = "some-password";
 
 void setup() {
-  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
+  
+  // Start serial for debugging
   Serial.begin(9600);
+  delay(10);
+
+  Serial.print("Connecting to: ");
+  Serial.println(ssid);
+
+  // Connecto to wifi
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  // Print connection details
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+ 
 }
 
 // the loop function runs over and over again forever
