@@ -1,0 +1,12 @@
+/bin/*
+/tmp/*
+/output/*
+/dist/*
+*.tmp
+*.bak
+*.swp
+*.~nib
+.metadata
+.settings
+.loadpath
+.recommenders
