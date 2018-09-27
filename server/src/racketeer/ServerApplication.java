@@ -1,5 +1,9 @@
 package racketeer;
+import java.util.ArrayList;
+
 import processing.core.PApplet;
+import processing.core.PFont;
+import processing.core.PImage;
 import processing.core.PVector;
 import racketeer.kinect.Camera;
 
@@ -15,10 +19,10 @@ public class ServerApplication extends PApplet {
 	public final int FIELD_WIDTH = 500;
 	public final int FIELD_HEIGHT = 700;
 	
-	public final int RW_MIN_X = 30;
-	public final int RW_MAX_X = 550;
-	public final int RW_MIN_Z = 940;
-	public final int RW_MAX_Z = 4000;
+	public final int RW_MIN_X = 609;
+	public final int RW_MAX_X = 45;
+	public final int RW_MIN_Z = 1000;
+	public final int RW_MAX_Z = 4300;
 	
 	private Racket racket;
 	private Camera camera;
@@ -27,12 +31,30 @@ public class ServerApplication extends PApplet {
 	private Player opponent;
 	
 	private PVector ballPos = new PVector(FIELD_X, FIELD_Y);
+	
+	// Graphics
+	private PFont font;
+	private PImage background;
+	
+	// Trails
+	public final int HISTORY_POINT_COUNT = 30;
+	
+	private ArrayList<PVector> ballHistory = new ArrayList<PVector>();
+	private ArrayList<PVector> heroHistory = new ArrayList<PVector>();
+	private ArrayList<PVector> opponentHistory = new ArrayList<PVector>();
 
 	@Override
 	public void setup() {
 		
 		// Applet config
 		size(1824, 740);
+		
+		frameRate(60);
+		
+		// Load resources
+		font = createFont("C:\\Users\\Wilco\\Projects\\sensorlab\\videowall\\videowall-server\\data\\Square721BT-BoldExtended.otf", 16);
+		textFont(font);
+		background = loadImage("C:\\Users\\Wilco\\Projects\\sensorlab\\videowall\\videowall-server\\data\\background.png");
 		
 		// Init racket
 		racket = new Racket(RACKET_HOST, RACKET_PORT);
@@ -56,7 +78,7 @@ public class ServerApplication extends PApplet {
 	
 	@Override
 	public void draw() {
-		background(0);
+		background(background);
 		
 //		// Failsafe when Kinect doesn't work 
 //		handleOverRide();
@@ -68,10 +90,14 @@ public class ServerApplication extends PApplet {
 			ballPos.x = mouseX;
 			ballPos.y = mouseY;
 		}
+		ballHistory.add(new PVector(ballPos.x, ballPos.y));
+		if (ballHistory.size() > HISTORY_POINT_COUNT) {
+			ballHistory.remove(0);
+		}
 
 		// Update camera
 		camera.update();
-		image(camera.getRgbImage(), FIELD_X + FIELD_WIDTH + 60, 120);
+		image(camera.getRgbImage(), FIELD_X + FIELD_WIDTH + 120, 160, 580, 400);
 		
 		// Draw playing field
 		strokeWeight(3);
@@ -90,16 +116,38 @@ public class ServerApplication extends PApplet {
 		}
 		
 		if (hero.isAvailable()) {
-			drawUser(hero, color(0, 0, 255));
+			
+			// Update/draw history
+			heroHistory.add(mapRealworldToScreenPos(hero.getWorldPos()));
+			if (heroHistory.size() > HISTORY_POINT_COUNT) {
+				heroHistory.remove(0);
+			}
+			drawHistory(heroHistory, 97, 97, 255);
+			
+			// Draw user
+			drawUser(hero, color(97, 97, 255), "PLAYER 1");
 		}
 		if (opponent.isAvailable()) {
-			drawUser(opponent, color(255, 0, 0));
+			
+			// Update/draw history
+			opponentHistory.add(mapRealworldToScreenPos(opponent.getWorldPos()));
+			if (opponentHistory.size() > HISTORY_POINT_COUNT) {
+				opponentHistory.remove(0);
+			}
+			drawHistory(opponentHistory, 255, 0, 0);
+			
+			// Draw user
+			drawUser(opponent, color(255, 0, 0), "PLAYER 2");
 		}
 		
 		// Draw ball
+		drawHistory(ballHistory, 0, 255, 0);
 		noStroke();
-		fill(255);
+		fill(0, 255, 0);
 		ellipse(ballPos.x, ballPos.y, 10, 10);
+		textAlign(LEFT, CENTER);
+		textSize(20);
+		text("BALL", ballPos.x + 20, ballPos.y);
 		
 	}
 	
@@ -122,7 +170,7 @@ public class ServerApplication extends PApplet {
 			map(opponentAngle, 0f, 360f, 0f, 1f), 
 			map(ballAngle, 0f, 360f, 0f, 1f));
 		
-		// TODO : draw angles on screen
+		// Draw angles on screen
 		drawRacket(opponentAngle, ballAngle);
 		
 	}
@@ -149,11 +197,17 @@ public class ServerApplication extends PApplet {
 		
 	}
 	
-	private void drawUser(Player player, int color) {
-		PVector pos = mapRealworldToScreenPos(player.getWorldPos());
+	private void drawUser(Player player, int color, String name) {
+		PVector worldPos = player.getWorldPos();
+		PVector pos = mapRealworldToScreenPos(worldPos);
 		noStroke();
 		fill(color);
 		ellipse(pos.x, pos.y, 20, 20);
+		
+		textAlign(LEFT, CENTER);
+		textSize(20);
+		text(name, pos.x + 20, pos.y);
+		text(String.format("[%.2f, %.2f]", worldPos.x, worldPos.z), pos.x + 20, pos.y + 20);
 	}
 	
 	/**
@@ -185,29 +239,35 @@ public class ServerApplication extends PApplet {
 	 * @param ballAngle
 	 */
 	private void drawRacket(float playerAngle, float ballAngle) {
-		noFill();
+		
 		pushMatrix();
 		
 		translate(1500, 360);
 		rotate(+HALF_PI);
 		
-		// Player
-		stroke(255);
-		strokeWeight(0.5f);
-		ellipse(0, 0, 400, 400);
+		// Hero
+		noStroke();
+		fill(97, 97, 255);
+		ellipse(0, 0, 100, 100);
+		noFill();
 		
-		strokeWeight(12);
-		stroke(255, 0, 0);
-		arc(0, 0, 400, 400, radians(playerAngle - 30), radians(playerAngle + 30));
-		
-		// Ball
+		// Opponent
 		stroke(255);
 		strokeWeight(0.5f);
 		ellipse(0, 0, 300, 300);
 		
 		strokeWeight(12);
+		stroke(255, 0, 0);
+		arc(0, 0, 300, 300, radians(playerAngle - 30), radians(playerAngle + 30));
+		
+		// Ball
+		stroke(255);
+		strokeWeight(0.5f);
+		ellipse(0, 0, 400, 400);
+		
+		strokeWeight(12);
 		stroke(0, 255, 0);
-		arc(0, 0, 300, 300, radians(ballAngle - 10), radians(ballAngle + 10));
+		arc(0, 0, 400, 400, radians(ballAngle - 10), radians(ballAngle + 10));
 		
 		popMatrix();
 	}
@@ -216,7 +276,7 @@ public class ServerApplication extends PApplet {
 		// Draw info
 		String debugText = !hero.isAvailable() ? "Waiting for Player 1" : "Waiting for Player 2";
 		fill(255);
-		textSize(40);
+		textSize(30);
 		textAlign(CENTER);
 		text(debugText, FIELD_X + FIELD_WIDTH / 2, FIELD_Y + FIELD_HEIGHT / 3);
 	}
@@ -259,4 +319,15 @@ public class ServerApplication extends PApplet {
 		PApplet.main(appletArgs);
 	}
 
+	private void drawHistory(ArrayList<PVector> history, int c1, int c2, int c3) {
+		noFill();
+		strokeWeight(2);
+		for (int i = history.size()-2; i > 0; i--) {
+			stroke(c1, c2, c3, map(i, history.size(), 0, 255, 10));
+			PVector historyPoint = history.get(i);
+			PVector historyPoint2 = history.get(i - 1);
+			line(historyPoint.x, historyPoint.y, historyPoint2.x, historyPoint2.y);
+		}
+	}
+	
 }
