@@ -145,9 +145,13 @@ public class ServerApplication extends PApplet {
 		noStroke();
 		fill(0, 255, 0);
 		ellipse(ballPos.x, ballPos.y, 10, 10);
+		
 		textAlign(LEFT, CENTER);
 		textSize(20);
 		text("BALL", ballPos.x + 20, ballPos.y);
+		textSize(10);
+		PVector ballWorldPos = mapScreenToRealworldPos(ballPos);
+		text(String.format("[%.2f, %.2f]", ballWorldPos.x, ballWorldPos.z), ballPos.x + 20, ballPos.y + 20);
 		
 	}
 	
@@ -207,6 +211,7 @@ public class ServerApplication extends PApplet {
 		textAlign(LEFT, CENTER);
 		textSize(20);
 		text(name, pos.x + 20, pos.y);
+		textSize(10);
 		text(String.format("[%.2f, %.2f]", worldPos.x, worldPos.z), pos.x + 20, pos.y + 20);
 	}
 	
