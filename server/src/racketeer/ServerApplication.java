@@ -37,7 +37,7 @@ public class ServerApplication extends PApplet {
 	private PImage background;
 	
 	// Trails
-	public final int HISTORY_POINT_COUNT = 30;
+	public final int HISTORY_POINT_COUNT = 60;
 	
 	private ArrayList<PVector> ballHistory = new ArrayList<PVector>();
 	private ArrayList<PVector> heroHistory = new ArrayList<PVector>();
@@ -326,7 +326,7 @@ public class ServerApplication extends PApplet {
 
 	private void drawHistory(ArrayList<PVector> history, int c1, int c2, int c3) {
 		noFill();
-		strokeWeight(2);
+		strokeWeight(4);
 		for (int i = history.size()-2; i > 0; i--) {
 			stroke(c1, c2, c3, map(i, history.size(), 0, 255, 10));
 			PVector historyPoint = history.get(i);
