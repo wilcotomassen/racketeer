@@ -1,0 +1,16 @@
+ESP8266 board settings:
+
+Board: Generic ESP8266 Module
+Flash Mode: DIO
+Flash Size: 512K (no SPIFFS)
+Debug port: Disabled
+Debug level: None
+IwIP Variant: v2 Lower Memory
+Reset Method: nodemcu
+Crystal Frequency: 26 MHz
+VTables: Flash
+Flash Frequency: 40 Mhz
+CPU Frequency: 80 MHz
+Builtin Led: 2
+Upload Speed: 115200
+Erase Flash: Only Sketch
